@@ -35,7 +35,7 @@ assign exponentResult                   = (exponent_a + exponent_b) - 8'd127 + n
 endmodule 	
 
 module fpMultiplication (input logic [31:0] x, y,output logic [31:0] fpmult);
-logic                                     sign_x, sign_y, signResult;
+logic                                     sign_x, sign_y, signResult,exception,zero,overflow,underflow;
 logic [8:0]                               exponent_x, exponent_y, exponentResult;;
 logic [22:0]                              product_mantissa;
 logic [47:0]                              product;
@@ -44,12 +44,19 @@ assign exponent_x                       = x[30:23];
 assign exponent_y                       = y[30:23]; 
 assign sign_x                           = x[31];
 assign sign_y                           = y[31];
+assign exception                        = (&x[30:23]) | (&y[30:23]);
+assign zero                             = exception ? 1'b0 : (product_mantissa == 23'd0) ? 1'b1 : 1'b0;
+assign overflow                         = ((exponentResult[8] & !exponentResult[7]) & !zero) ;
+assign underflow                        = ((exponentResult[8] & exponentResult[7]) & !zero) ? 1'b1 : 1'b0;
 
 multiplier  mult(x, y, product);                                                                                                                                
 sign        signcalc(sign_x,sign_y,signResult);                               
 normalize   norm(product,exponent_x,exponent_y,product_mantissa,exponentResult);
 
-assign fpmult = {signResult,exponentResult[7:0],product_mantissa};                                   
+assign fpmult = exception ? 32'd0 : zero ? {signResult,31'd0} : overflow ? {signResult,8'hFF,23'd0} : 
+                underflow ? {signResult,31'd0} : {signResult,exponentResult[7:0],product_mantissa};           
+
+                                 
 endmodule 
 
 //---------------------------------------------------------------------------------
