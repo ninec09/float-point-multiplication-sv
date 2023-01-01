@@ -1,4 +1,3 @@
-// add 1 bit and multitiple
 module multiplier (input logic [22:0] a,b,output logic [47:0] product);
 logic [23:0] op_a, op_b;
 assign op_a = (|a[30:23]) ? {1'b1,a[22:0]} : {1'b0,a[22:0]};
@@ -7,25 +6,26 @@ assign product = op_a * op_b;
 endmodule
 
 
-
-
-
-// iki sayinin exponentinin out kismina aktarilmasi. Exponent outputunda hata var. 
-module addition #(parameter N = 8)
-(input logic [N-1:0] exponent1, exponent2, output logic [N-1:0] y);
-assign y = exponent1 + exponent2 - 127;         // formulde +127 toplamasi yapiliyor. Hatali formul !?  -127 kullanilabilinir ?
+module addition (input logic [7:0] exponent1, exponent2, output logic [7:0] y);
+assign y = exponent1 + exponent2 - 127;       
 endmodule
 
-// isaret bitinin modulu. Sonuc dogru cikiyor.
+
 module sign #(parameter N = 1)
 (input logic sign1, sign2, output logic signOut);        
 assign signOut = sign1 ^ sign2;
 endmodule
 
-// normalize islemi hata olabilir !? 
-module (input logic [47:0] product, input logic [7:0] exponent, output logic [22:0] m,output logic [7:0] exponentRes);
-assign m = product[47]? product[46:24]:product[45:23];
-assign exponentRes = exponent;      // exponent result.
+
+module normalised (input logic [47:0] product, input logic [7:0] exponent, output logic [22:0] product_mantissa,output logic [7:0] exponentRes);
+logic normalised,round;
+logic [47:0] product_normalised;
+assign round = |product_normalised[22:0]; 
+assign normalised = product[47] ? 1'b1 : 1'b0;                 
+assign product_normalised = normalised ? product : product << 1;	
+
+assign product_mantissa = product_normalised[46:24] + (product_normalised[23] & round); 
+assign exponentRes = exponent;      
 endmodule 	
 
 // yukardaki modulleri isledigim son modul.
