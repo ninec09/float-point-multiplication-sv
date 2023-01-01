@@ -1,11 +1,14 @@
 // add 1 bit and multitiple
-module multiplier #(parameter N = 23)
-(input logic [N-1:0] floatOne, floatTwo,output logic [47:0] outFloatResult);
-logic [N:0] outFloatOne, outFloatTwo;
-assign outFloatOne = {1'b1,floatOne};
-assign outFloatTwo = {1'b1,floatTwo};
-assign outFloatResult = outFloatOne * outFloatTwo;
+module multiplier (input logic [22:0] a,b,output logic [47:0] product);
+logic [23:0] op_a, op_b;
+assign op_a = (|a[30:23]) ? {1'b1,a[22:0]} : {1'b0,a[22:0]};
+assign op_b = (|b[30:23]) ? {1'b1,b[22:0]} : {1'b0,b[22:0]};;
+assign product = op_a * op_b;
 endmodule
+
+
+
+
 
 // iki sayinin exponentinin out kismina aktarilmasi. Exponent outputunda hata var. 
 module addition #(parameter N = 8)
@@ -20,9 +23,8 @@ assign signOut = sign1 ^ sign2;
 endmodule
 
 // normalize islemi hata olabilir !? 
-module normalize #(parameter N = 8)
-(input logic [47:0] mantissa, input logic [N-1:0] exponent, output logic [22:0] m,output logic [N-1:0] exponentRes);
-assign m = mantissa[47]? mantissa[46:24]:mantissa[45:23];
+module (input logic [47:0] product, input logic [7:0] exponent, output logic [22:0] m,output logic [7:0] exponentRes);
+assign m = product[47]? product[46:24]:product[45:23];
 assign exponentRes = exponent;      // exponent result.
 endmodule 	
 
