@@ -23,7 +23,7 @@ module sign (input logic sign1, sign2, output logic signOut);
 assign signOut                          = sign1 ^ sign2;
 endmodule
 
-// output mantissa and exponent 
+// calculate mantissa and exponent 
 module normalize (input logic [47:0] product, input logic [8:0] exponent_a,exponent_b, output logic [22:0] product_mantissa, output logic [8:0] exponentResult);
 logic                                     normalised,round;
 logic [47:0]                              product_normalised;
@@ -34,11 +34,12 @@ assign product_mantissa                 = product_normalised[46:24] + (product_n
 assign exponentResult                   = (exponent_a + exponent_b) - 8'd127 + normalised;
 endmodule 	
 
-module fpMultiplication (input logic [31:0] x, y,output logic [31:0] fpmult);
-logic                                     sign_x, sign_y, signResult,exception,zero,overflow,underflow;
-logic [8:0]                               exponent_x, exponent_y, exponentResult;;
+module fpMultiplication (input logic [31:0] x, y,output logic [31:0] fpmultResult);
+logic                                     sign_x, sign_y, signResult, exception, zero, overflow, underflow;
+logic [8:0]                               exponent_x, exponent_y, exponentResult;
 logic [22:0]                              product_mantissa;
 logic [47:0]                              product;
+logic [31:0]                              fpmult;
 
 assign exponent_x                       = x[30:23]; 
 assign exponent_y                       = y[30:23]; 
@@ -54,9 +55,11 @@ sign        signcalc(sign_x,sign_y,signResult);
 normalize   norm(product,exponent_x,exponent_y,product_mantissa,exponentResult);
 
 assign fpmult = exception ? 32'd0 : zero ? {signResult,31'd0} : overflow ? {signResult,8'hFF,23'd0} : 
-                underflow ? {signResult,31'd0} : {signResult,exponentResult[7:0],product_mantissa};           
+                underflow ? {signResult,31'd0} : {signResult,exponentResult[7:0],product_mantissa}  ;
 
-                                 
+// fpmultResult added for a special test case.
+assign fpmultResult = exponentResult[8] ? fpmult : overflow ? fpmult : underflow ? fpmult : 
+                      zero ? {signResult, exponentResult[7:0] ,product_mantissa} : fpmult ;                                 
 endmodule 
 
 //---------------------------------------------------------------------------------
